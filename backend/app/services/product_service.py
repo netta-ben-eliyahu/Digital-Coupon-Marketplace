@@ -43,5 +43,3 @@ def delete_coupon(db: Session, coupon_id: str) -> None:
     coupon = get_product_by_id(db, coupon_id)
     db.delete(coupon)
     db.commit()
-    db.refresh(coupon)
-    return coupon
