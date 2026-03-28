@@ -34,7 +34,9 @@ def update_coupon(db: Session, coupon_id: str, coupon_data) -> Coupon:
     for key, value in coupon_data.model_dump(exclude_unset=True).items():
         setattr(coupon, key, value)
     if coupon_data.cost_price is not None or coupon_data.margin_percentage is not None:
-        coupon.minimum_sell_price = coupon.cost_price * (1 + coupon.margin_percentage / 100)
+        cost = float(coupon.cost_price)
+        margin = float(coupon.margin_percentage)
+        coupon.minimum_sell_price = cost * (1 + margin / 100)
     db.commit()
     db.refresh(coupon)
     return coupon

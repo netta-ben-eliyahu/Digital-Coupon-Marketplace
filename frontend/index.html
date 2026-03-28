@@ -1,101 +1,218 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Digital Coupon Marketplace</title>
   <style>
-    body { font-family: sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
-    h1 { margin-bottom: 1rem; }
-    .row { display: flex; gap: 0.5rem; margin: 0.5rem 0; flex-wrap: wrap; }
-    input, button, select { padding: 0.5rem; }
-    .card { border: 1px solid #ddd; padding: 0.75rem; margin: 0.5rem 0; border-radius: 8px; }
-    pre { background: #f7f7f7; padding: 0.75rem; border-radius: 8px; overflow: auto; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; }
+
+    header {
+      background: #1a1a2e; color: white;
+      padding: 1rem 2rem; display: flex; align-items: center; gap: 1rem;
+    }
+    header h1 { font-size: 1.4rem; }
+
+    .tabs { display: flex; background: #16213e; }
+    .tab {
+      padding: 0.8rem 2rem; color: #aaa; cursor: pointer;
+      border-bottom: 3px solid transparent; font-weight: 500;
+    }
+    .tab.active { color: white; border-bottom-color: #e94560; }
+
+    .page { display: none; padding: 2rem; max-width: 1000px; margin: 0 auto; }
+    .page.active { display: block; }
+
+    h2 { margin-bottom: 1.2rem; color: #1a1a2e; }
+    h3 { margin: 1.5rem 0 0.8rem; color: #444; }
+
+    .card {
+      background: white; border-radius: 10px; padding: 1.2rem;
+      margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .card-info { flex: 1; }
+    .card-info b { font-size: 1.1rem; }
+    .card-info p { color: #666; margin: 0.2rem 0; font-size: 0.9rem; }
+    .price { font-size: 1.3rem; font-weight: bold; color: #e94560; margin-right: 1rem; }
+
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.8rem; margin-bottom: 1rem; }
+    input, select {
+      padding: 0.6rem 0.8rem; border: 1px solid #ddd;
+      border-radius: 6px; font-size: 0.95rem; width: 100%;
+    }
+    input:focus, select:focus { outline: none; border-color: #e94560; }
+
+    button {
+      padding: 0.6rem 1.2rem; border: none; border-radius: 6px;
+      cursor: pointer; font-size: 0.95rem; font-weight: 500;
+    }
+    .btn-primary { background: #e94560; color: white; }
+    .btn-primary:hover { background: #c73652; }
+    .btn-danger { background: #ff4d4d; color: white; }
+    .btn-danger:hover { background: #cc0000; }
+    .btn-secondary { background: #1a1a2e; color: white; }
+    .btn-secondary:hover { background: #16213e; }
+
+    .token-bar {
+      background: white; padding: 1rem; border-radius: 8px;
+      margin-bottom: 1.5rem; display: flex; gap: 0.8rem; align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .token-bar input { flex: 1; }
+
+    .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+    .badge-sold { background: #ffeaea; color: #cc0000; }
+    .badge-available { background: #eaffea; color: #007700; }
+
+    pre {
+      background: #1a1a2e; color: #a8ff78; padding: 1rem;
+      border-radius: 8px; overflow: auto; font-size: 0.85rem;
+      margin-top: 1rem; max-height: 250px;
+    }
+
+    .empty { color: #999; text-align: center; padding: 2rem; }
   </style>
 </head>
 <body>
-  <h1>Digital Coupon Marketplace</h1>
 
-  <h2>Customer</h2>
-  <div class="row">
-    <button onclick="loadCustomerProducts()">Load Products</button>
+<header>
+  <h1>🎟 Digital Coupon Marketplace</h1>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('customer')">🛍 Customer</div>
+  <div class="tab" onclick="switchTab('admin')">⚙️ Admin</div>
+</div>
+
+<!-- CUSTOMER PAGE -->
+<div id="page-customer" class="page active">
+  <h2>Available Coupons</h2>
+  <button class="btn-secondary" onclick="loadCustomerProducts()" style="margin-bottom:1rem">🔄 Refresh</button>
+  <div id="customer-products"><p class="empty">Click Refresh to load coupons.</p></div>
+  <pre id="customer-out" style="display:none"></pre>
+</div>
+
+<!-- ADMIN PAGE -->
+<div id="page-admin" class="page">
+  <div class="token-bar">
+    <label><b>Admin Token:</b></label>
+    <input id="admin-token" type="password" placeholder="Enter admin bearer token" />
   </div>
-  <div id="customer-products"></div>
 
-  <h2>Admin - Create Coupon</h2>
-  <div class="row"><input id="admin-token" placeholder="Admin Bearer Token" /></div>
-  <div class="row">
+  <h2>Create New Coupon</h2>
+  <div class="form-grid">
     <input id="name" placeholder="Name" />
     <input id="description" placeholder="Description" />
     <input id="image_url" placeholder="Image URL" />
-  </div>
-  <div class="row">
     <input id="cost_price" type="number" step="0.01" placeholder="Cost Price" />
     <input id="margin_percentage" type="number" step="0.01" placeholder="Margin %" />
     <select id="value_type">
       <option value="STRING">STRING</option>
       <option value="IMAGE">IMAGE</option>
     </select>
-    <input id="value" placeholder="Coupon Value" />
-    <button onclick="createCoupon()">Create</button>
+    <input id="value" placeholder="Coupon Value (code or URL)" />
   </div>
+  <button class="btn-primary" onclick="createCoupon()">➕ Create Coupon</button>
 
-  <h2>Output</h2>
-  <pre id="out"></pre>
+  <h3>All Coupons</h3>
+  <button class="btn-secondary" onclick="loadAdminProducts()" style="margin-bottom:1rem">🔄 Refresh</button>
+  <div id="admin-products"><p class="empty">Click Refresh to load all coupons.</p></div>
+  <pre id="admin-out" style="display:none"></pre>
+</div>
 
-  <script>
-    const API = "http://localhost:8000";
+<script>
+  const API = "http://localhost:8000";
 
-    function show(data) {
-      document.getElementById("out").textContent = JSON.stringify(data, null, 2);
-    }
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('page-' + tab).classList.add('active');
+  }
 
-    async function loadCustomerProducts() {
-      const res = await fetch(`${API}/api/v1/customer/products`);
-      const data = await res.json();
-      const root = document.getElementById("customer-products");
-      root.innerHTML = "";
-      data.forEach(p => {
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `
-          <b>${p.name}</b><br/>
-          ${p.description || ""}<br/>
-          Price: ${p.price}<br/>
-          <button data-id="${p.id}">Buy</button>
-        `;
-        div.querySelector("button").onclick = async () => {
-          const r = await fetch(`${API}/api/v1/customer/products/${p.id}/purchase`, { method: "POST" });
-          show(await r.json());
-          loadCustomerProducts();
-        };
-        root.appendChild(div);
-      });
-    }
+  function showOutput(id, data) {
+    const el = document.getElementById(id);
+    el.style.display = 'block';
+    el.textContent = JSON.stringify(data, null, 2);
+  }
 
-    async function createCoupon() {
-      const token = document.getElementById("admin-token").value;
-      const body = {
-        name: document.getElementById("name").value,
-        description: document.getElementById("description").value,
-        image_url: document.getElementById("image_url").value,
-        cost_price: Number(document.getElementById("cost_price").value),
-        margin_percentage: Number(document.getElementById("margin_percentage").value),
-        value_type: document.getElementById("value_type").value,
-        value: document.getElementById("value").value
+  function adminHeaders() {
+    const token = document.getElementById('admin-token').value;
+    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+  }
+
+  // ── CUSTOMER ──────────────────────────────────────────────
+  async function loadCustomerProducts() {
+    const res = await fetch(`${API}/api/v1/customer/products`);
+    const data = await res.json();
+    const root = document.getElementById('customer-products');
+    root.innerHTML = '';
+    if (!data.length) { root.innerHTML = '<p class="empty">No coupons available.</p>'; return; }
+    data.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.innerHTML = `
+        <div class="card-info">
+          <b>${p.name}</b>
+          <p>${p.description || ''}</p>
+        </div>
+        <span class="price">$${p.price}</span>
+        <button class="btn-primary" data-id="${p.id}">Buy</button>
+      `;
+      div.querySelector('button').onclick = async () => {
+        const r = await fetch(`${API}/api/v1/customer/products/${p.id}/purchase`, { method: 'POST' });
+        showOutput('customer-out', await r.json());
+        loadCustomerProducts();
       };
+      root.appendChild(div);
+    });
+  }
 
-      const res = await fetch(`${API}/api/v1/admin/coupons`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(body)
-      });
+  // ── ADMIN ─────────────────────────────────────────────────
+  async function createCoupon() {
+    const body = {
+      name: document.getElementById('name').value,
+      description: document.getElementById('description').value,
+      image_url: document.getElementById('image_url').value,
+      cost_price: Number(document.getElementById('cost_price').value),
+      margin_percentage: Number(document.getElementById('margin_percentage').value),
+      value_type: document.getElementById('value_type').value,
+      value: document.getElementById('value').value
+    };
+    const res = await fetch(`${API}/api/v1/admin/coupons`, {
+      method: 'POST', headers: adminHeaders(), body: JSON.stringify(body)
+    });
+    showOutput('admin-out', await res.json());
+    loadAdminProducts();
+  }
 
-      show(await res.json());
-    }
-  </script>
+  async function loadAdminProducts() {
+    const res = await fetch(`${API}/api/v1/admin/coupons`, { headers: adminHeaders() });
+    const data = await res.json();
+    const root = document.getElementById('admin-products');
+    root.innerHTML = '';
+    if (!data.length) { root.innerHTML = '<p class="empty">No coupons yet.</p>'; return; }
+    data.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.innerHTML = `
+        <div class="card-info">
+          <b>${p.name}</b>
+          <p>Cost: $${p.cost_price} | Margin: ${p.margin_percentage}% | Min Price: $${p.minimum_sell_price}</p>
+          <p>Value: ${p.value}</p>
+        </div>
+        <span class="badge ${p.is_sold ? 'badge-sold' : 'badge-available'}">${p.is_sold ? 'SOLD' : 'AVAILABLE'}</span>
+        <button class="btn-danger" data-id="${p.id}" style="margin-left:1rem">🗑 Delete</button>
+      `;
+      div.querySelector('button').onclick = async () => {
+        await fetch(`${API}/api/v1/admin/coupons/${p.id}`, { method: 'DELETE', headers: adminHeaders() });
+        loadAdminProducts();
+      };
+      root.appendChild(div);
+    });
+  }
+</script>
 </body>
 </html>

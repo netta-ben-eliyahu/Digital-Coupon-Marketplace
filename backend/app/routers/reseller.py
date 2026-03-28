@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from uuid import UUID
 from app.database import get_db
 from app.dependencies import get_current_reseller
 from app.services import product_service
@@ -24,7 +25,7 @@ def list_products(db: Session = Depends(get_db), _ = Depends(get_current_reselle
     ]
 
 @router.get("/products/{product_id}", response_model=ProductPublicResponse)
-def get_product(product_id: str, db: Session = Depends(get_db), _ = Depends(get_current_reseller)):
+def get_product(product_id: UUID, db: Session = Depends(get_db), _ = Depends(get_current_reseller)):
     product = product_service.get_product_by_id(db, product_id)
     return ProductPublicResponse(
         id=product.id,
@@ -38,7 +39,7 @@ def get_product(product_id: str, db: Session = Depends(get_db), _ = Depends(get_
 # reseller.py
 @router.post("/products/{product_id}/purchase", response_model=PurchaseResponse)
 def purchase_product(
-    product_id: str,
+    product_id: UUID,
     purchase_request: PurchaseRequest,
     db: Session = Depends(get_db),
     _=Depends(get_current_reseller),

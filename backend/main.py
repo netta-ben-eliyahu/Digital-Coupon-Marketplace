@@ -4,8 +4,24 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.exceptions import AppException
 from app.routers import admin, reseller, customer
+from app.database import SessionLocal
+from app.models.reseller import Reseller
+from app.config import settings
 
 app = FastAPI(title="Digital Coupon Marketplace")
+
+
+@app.on_event("startup")
+def seed_reseller():
+    db = SessionLocal()
+    try:
+        exists = db.query(Reseller).filter(Reseller.token == settings.RESELLER_TOKEN).first()
+        if not exists:
+            db.add(Reseller(name="Default Reseller", token=settings.RESELLER_TOKEN))
+            db.commit()
+    finally:
+        db.close()
+
 
 app.add_middleware(
     CORSMiddleware,

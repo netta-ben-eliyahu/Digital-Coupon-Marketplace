@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Numeric, Boolean, String, Enum, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 import enum
-from app.models.product import Product
+from app.models.product import Product,ProductType
 
 
 class CouponValueType(enum.Enum):
@@ -20,5 +20,5 @@ class Coupon(Product):
     value = Column(String, nullable=False)
 
     __mapper_args__ = {
-        "polymorphic_identity": "COUPON"
+        "polymorphic_identity": ProductType.COUPON
     }
